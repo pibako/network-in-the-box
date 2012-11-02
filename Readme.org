@@ -1,0 +1,69 @@
+#+TITLE: Openindiana network in the box
+
+* Setup
+
+** create virtualized network:
+   : # ./create-network.sh 
+
+** create basic zone zclone
+   : # ./create-zone-basic.sh zclone
+   and halt it after 1 minute
+   : # zoneadm -z $ZONENAME halt
+
+** create zones: router, proxy, db and web
+   : # ./create-all-zones.sh
+
+** add route to the virtual network via vglob1
+   : # ifconfig vglob1 plumb
+   : # ifconfig vglob1 10.0.8.253/24 up
+   : # echo "echo '10.0.8.253/24' > /etc/hostname.vglob1" | pfexec sh
+
+** configure non global zones:
+   : # ./post-install-fix.sh zrouter1 zproxy1 zdb1 zweb1
+
+** enable ip forwarding in both zrouter and global
+   : # routeadm -e ipv4-forwarding -u
+
+** add default route to zrouter
+   : # route -p add default 10.0.8.253
+
+** enable ipfilter
+   1. check if firewall config is set to /etc/ipf/ipf.conf
+      : # svcprop ipfilter:default |grep firewall_config_default/custom_policy_file
+
+   2. if not, set it up to:
+      : # svccfg -s ipfilter:default setprop firewall_config_default/custom_policy_file = astring: "/etc/ipf/ipf.conf"
+
+   3. configure NAT; add to /etc/ipf/ipnat.conf the following:
+      : rdr e1000g0 0.0.0.0/0 port 80 -> 10.0.5.1 port 80 
+      : map e1000g0 10.0.5.0/24 -> 0/32 portmap tcp/udp auto
+      : map e1000g0 10.0.5.0/24 -> 0/32
+      : map e1000g0 10.0.6.0/24 -> 0/32 portmap tcp/udp auto
+      : map e1000g0 10.0.6.0/24 -> 0/32
+      : map e1000g0 10.0.7.0/24 -> 0/32 portmap tcp/udp auto
+      : map e1000g0 10.0.7.0/24 -> 0/32
+      : map e1000g0 10.0.8.0/24 -> 0/32 portmap tcp/udp auto
+      : map e1000g0 10.0.8.0/24 -> 0/32       
+
+   4. enable service:
+      : # svcadm enable ipfilter:default
+
+** install gnu in zweb1:
+   1. gnu-tar
+   2. gawk
+   3. gnu-sed
+   4. gnu-grep
+   5. gnu-coreutils
+   6. gnu-findutils
+   7. gcc
+
+* License
+  Copyright (c) 2012, Kowalski Consulting
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+  Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+  Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+

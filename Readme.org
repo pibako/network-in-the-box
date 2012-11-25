@@ -1,5 +1,7 @@
 #+TITLE: Openindiana network in the box
 
+[[file:network-in-the-box.png]]
+
 * Setup
 
 ** create virtualized network:

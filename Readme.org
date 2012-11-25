@@ -1,6 +1,6 @@
 #+TITLE: Openindiana network in the box
 
-[[file:./network-in-the-box.png][file:./network-in-the-box.png]]
+[[file:./network-in-the-box.png]]
 
 * Setup
 

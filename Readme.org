@@ -1,6 +1,6 @@
 #+TITLE: Openindiana network in the box
 
-[[file:./network-in-the-box.png]]
+[[https://raw.github.com/pibako/org-image/master/network-in-the-box.png]]
 
 * Setup
 
